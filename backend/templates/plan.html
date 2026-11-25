@@ -1,0 +1,289 @@
+{% extends "layout.html" %}
+
+{% block title %}Plan{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='plan_enhancements.css') }}">
+{% endblock %}
+
+{% block content %}
+<header class="view-header plan-header">
+    <div class="header-content">
+        <h1><span class="gradient-text">Plan Your Goals</span></h1>
+        <p class="subtitle">Organize today, achieve tomorrow</p>
+    </div>
+</header>
+
+<!-- Plan Navigation Tabs -->
+<div class="plan-nav-tabs">
+    <button class="plan-tab active" data-tab="days">
+        <span class="material-symbols-rounded">today</span>
+        <span>Days</span>
+    </button>
+    <button class="plan-tab" data-tab="monthly">
+        <span class="material-symbols-rounded">calendar_month</span>
+        <span>Monthly</span>
+    </button>
+    <button class="plan-tab" data-tab="yearly">
+        <span class="material-symbols-rounded">calendar_today</span>
+        <span>Yearly</span>
+    </button>
+</div>
+
+<!-- Days Section -->
+<section class="plan-section" id="days-section">
+    <!-- Time-based Quick Segments -->
+    <div class="time-segments">
+        <div class="segment-card glass-panel yesterday" data-segment="yesterday">
+            <div class="segment-icon">
+                <span class="material-symbols-rounded">history</span>
+            </div>
+            <div class="segment-info">
+                <h3>Yesterday</h3>
+                <p class="segment-date" id="yesterday-date"></p>
+                <div class="segment-count">
+                    <span id="yesterday-count">0</span> tasks
+                </div>
+            </div>
+            <div class="segment-progress">
+                <svg viewBox="0 0 36 36" class="circular-progress">
+                    <path class="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" id="yesterday-progress-ring" stroke-dasharray="0, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <text x="18" y="20.35" class="progress-text" id="yesterday-percent">0%</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="segment-card glass-panel today active" data-segment="today">
+            <div class="segment-glow"></div>
+            <div class="segment-icon pulse">
+                <span class="material-symbols-rounded">today</span>
+            </div>
+            <div class="segment-info">
+                <h3>Today</h3>
+                <p class="segment-date" id="today-date"></p>
+                <div class="segment-count">
+                    <span id="today-count">0</span> tasks
+                </div>
+            </div>
+            <div class="segment-progress">
+                <svg viewBox="0 0 36 36" class="circular-progress">
+                    <path class="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle today-circle" id="today-progress-ring" stroke-dasharray="0, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <text x="18" y="20.35" class="progress-text" id="today-percent">0%</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="segment-card glass-panel tomorrow" data-segment="tomorrow">
+            <div class="segment-icon">
+                <span class="material-symbols-rounded">event_upcoming</span>
+            </div>
+            <div class="segment-info">
+                <h3>Tomorrow</h3>
+                <p class="segment-date" id="tomorrow-date"></p>
+                <div class="segment-count">
+                    <span id="tomorrow-count">0</span> tasks
+                </div>
+            </div>
+            <div class="segment-progress">
+                <svg viewBox="0 0 36 36" class="circular-progress">
+                    <path class="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" id="tomorrow-progress-ring" stroke-dasharray="0, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <text x="18" y="20.35" class="progress-text" id="tomorrow-percent">0%</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Display for Selected Segment -->
+    <div class="segment-tasks-panel glass-panel" id="segment-tasks-panel">
+        <div class="panel-header">
+            <h3 id="segment-panel-title">Today's Tasks</h3>
+            <button class="btn-primary" id="add-task-btn-plan">
+                <span class="material-symbols-rounded">add</span> New Task
+            </button>
+        </div>
+        <div class="segment-tasks-list" id="segment-tasks-list">
+            <!-- Tasks will be populated here -->
+            <div class="empty-segment">
+                <span class="material-symbols-rounded">task_alt</span>
+                <p>No tasks scheduled</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Monthly Section -->
+<section class="plan-section hidden" id="monthly-section">
+    <div class="calendar-header-hero">
+        <div class="month-nav-pill">
+            <button class="nav-btn" id="prev-month">
+                <span class="material-symbols-rounded">chevron_left</span>
+            </button>
+            <h2 id="current-month-year">February 2026</h2>
+            <button class="nav-btn" id="next-month">
+                <span class="material-symbols-rounded">chevron_right</span>
+            </button>
+        </div>
+        <div class="header-actions">
+            <button class="btn-glass" id="add-monthly-goal">
+                <span class="material-symbols-rounded">flag</span> Set Goal
+            </button>
+        </div>
+    </div>
+
+    <div class="monthly-layout-split">
+        <div class="calendar-wrapper glass-panel">
+            <div id="calendar-grid" class="immersive-calendar"></div>
+        </div>
+        <div class="monthly-aside">
+            <div class="widget-card glass-panel">
+                <div class="widget-header">
+                    <span class="material-symbols-rounded icon-purple">insights</span>
+                    <h4>Consistency</h4>
+                </div>
+                <div class="heatmap-compact" id="activity-heatmap"></div>
+            </div>
+            <div class="widget-card glass-panel flex-grow">
+                <div class="widget-header">
+                    <span class="material-symbols-rounded icon-blue">track_changes</span>
+                    <h4>Focus Goals</h4>
+                </div>
+                <div class="goals-list-styled" id="monthly-goals-list">
+                    <p class="empty-goals">No goals set yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Yearly Section -->
+<section class="plan-section hidden" id="yearly-section">
+    <div class="year-header-hero">
+        <button class="nav-cir-btn" id="prev-year">
+            <span class="material-symbols-rounded">arrow_back</span>
+        </button>
+        <h1 class="year-title gradient-text" id="current-year">2026</h1>
+        <button class="nav-cir-btn" id="next-year">
+            <span class="material-symbols-rounded">arrow_forward</span>
+        </button>
+    </div>
+
+    <div class="year-dashboard-v2">
+        <div class="stats-row">
+            <div class="stat-pill glass-panel">
+                <span class="material-symbols-rounded icon-purple">check_circle</span>
+                <div class="pill-data">
+                    <span class="label">Completed</span>
+                    <span class="value" id="year-total-completed">0</span>
+                </div>
+            </div>
+            <div class="stat-pill glass-panel">
+                <span class="material-symbols-rounded icon-blue">emoji_events</span>
+                <div class="pill-data">
+                    <span class="label">Goals</span>
+                    <span class="value" id="year-goals-achieved">0</span>
+                </div>
+            </div>
+            <div class="stat-pill glass-panel">
+                <span class="material-symbols-rounded icon-green">trending_up</span>
+                <div class="pill-data">
+                    <span class="label">Efficiency</span>
+                    <span class="value" id="year-productivity">0%</span>
+                </div>
+            </div>
+            <div class="stat-pill glass-panel">
+                <span class="material-symbols-rounded icon-orange">local_fire_department</span>
+                <div class="pill-data">
+                    <span class="label">Best Streak</span>
+                    <span class="value" id="year-best-streak">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="year-main-grid">
+            <div class="months-masonry glass-panel">
+                <div class="section-title">
+                    <span class="material-symbols-rounded">calendar_view_week</span> Year at a Glance
+                </div>
+                <div id="year-grid" class="months-grid-display"></div>
+            </div>
+            <div class="milestones-panel glass-panel">
+                <div class="section-title-row">
+                    <div class="section-title">
+                        <span class="material-symbols-rounded">flag</span> Milestones
+                    </div>
+                    <button class="btn-icon-tiny" id="add-yearly-goal">
+                        <span class="material-symbols-rounded">add</span>
+                    </button>
+                </div>
+                <div class="timeline-container" id="yearly-goals-list">
+                    <p class="empty-goals">No milestones set</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Goal Modal -->
+<div id="goal-modal" class="modal hidden">
+    <div class="modal-content glass-panel modal-animated">
+        <span class="close-modal" id="close-goal-modal">&times;</span>
+        <h2><span class="material-symbols-rounded modal-icon">flag</span> Add Goal</h2>
+        <form id="goal-form">
+            <div class="input-group">
+                <label>Goal Title</label>
+                <input type="text" id="goal-title" placeholder="What's your goal?" required>
+            </div>
+            <div class="input-group">
+                <label>Goal Type</label>
+                <select id="goal-type">
+                    <option value="monthly">Monthly Goal</option>
+                    <option value="yearly">Yearly Goal</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Target Progress (Optional)</label>
+                <input type="number" id="goal-target" placeholder="e.g., 10" min="1">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancel-goal-btn">Cancel</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-rounded">add</span> Add Goal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Date helper for quick date buttons
+    function setDatePlan(type) {
+        const dateInput = document.getElementById('new-task-date');
+        const today = new Date();
+
+        if (type === 'tomorrow') {
+            today.setDate(today.getDate() + 1);
+        }
+
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+</script>
+<script src="{{ url_for('static', filename='plan.js') }}"></script>
+{% endblock %}

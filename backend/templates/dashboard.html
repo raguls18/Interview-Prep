@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<header class="view-header dashboard-header">
+    <div>
+        <h1 class="dashboard-greeting" id="dashboard-greeting">Good Morning 👋</h1>
+        <p class="date-display" id="current-date">Fetching date...</p>
+    </div>
+    <div class="dashboard-header-right" style="display: flex; align-items: center; gap: 10px;">
+        <button class="btn-primary open-task-modal-btn" id="add-task-btn" style="padding: 7px 14px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+            <span class="material-symbols-rounded" style="font-size: 18px;">add</span> New Task
+        </button>
+        <div class="today-pill">
+            <span class="material-symbols-rounded">today</span>
+            <span id="today-short-date">Today</span>
+        </div>
+    </div>
+</header>
+
+<!-- Stats Row -->
+<div class="stats-grid dashboard-stats-grid">
+    <div class="stat-card glass-panel stat-card-enhanced">
+        <div class="stat-icon purple">
+            <span class="material-symbols-rounded">checklist</span>
+        </div>
+        <div class="stat-info">
+            <h3>Today's Tasks</h3>
+            <p id="total-count">0</p>
+        </div>
+        <div class="stat-badge stat-badge-purple">Today</div>
+    </div>
+    <div class="stat-card glass-panel stat-card-enhanced">
+        <div class="stat-icon blue">
+            <span class="material-symbols-rounded">pending_actions</span>
+        </div>
+        <div class="stat-info">
+            <h3>Pending</h3>
+            <p id="pending-count">0</p>
+        </div>
+        <div class="stat-badge stat-badge-blue">Active</div>
+    </div>
+    <div class="stat-card glass-panel stat-card-enhanced">
+        <div class="stat-icon green">
+            <span class="material-symbols-rounded">task_alt</span>
+        </div>
+        <div class="stat-info">
+            <h3>Completed</h3>
+            <p id="done-count">0</p>
+        </div>
+        <div class="stat-badge stat-badge-green">Done</div>
+    </div>
+    <div class="stat-card glass-panel stat-card-enhanced stat-card-rate">
+        <div class="stat-icon orange">
+            <span class="material-symbols-rounded">insights</span>
+        </div>
+        <div class="stat-info">
+            <h3>Completion Rate</h3>
+            <p id="completion-rate">0%</p>
+        </div>
+        <!-- SVG Ring Progress -->
+        <svg class="rate-ring" viewBox="0 0 50 50">
+            <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4" />
+            <circle id="completion-ring" cx="25" cy="25" r="20" fill="none" stroke="url(#ringGrad)" stroke-width="4"
+                stroke-linecap="round" stroke-dasharray="0" stroke-dashoffset="0"
+                style="transform: rotate(-90deg); transform-origin: center; transition: stroke-dasharray 0.8s ease, stroke-dashoffset 0.8s ease;" />
+            <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6c5ce7" />
+                    <stop offset="100%" stop-color="#00cec9" />
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+</div>
+
+<!-- 4 Date-Wise Sections (Today's Actions & Yesterday's Audit) -->
+
+<!-- Row 1: TODAY (Pending on left, Completed on right) -->
+<div class="dashboard-sections-header" style="margin: 28px 0 14px 0; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-rounded" style="color: var(--primary); font-size: 22px;">today</span>
+        <h2 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0;">Today's Daily Tasks</h2>
+    </div>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Active workspace & progress</span>
+</div>
+
+<div class="dashboard-activity-grid" style="margin-bottom: 28px;">
+    <!-- D. Today's Not Completed Tasks (Pending) -->
+    <div class="activity-panel glass-panel">
+        <div class="activity-panel-header">
+            <div class="activity-panel-title">
+                <span class="activity-dot dot-purple"></span>
+                <h3>Today's Pending Tasks</h3>
+            </div>
+            <span class="activity-count-badge badge-purple" id="today-pending-count-badge">0</span>
+        </div>
+        <ul id="today-pending-list" class="history-task-list">
+            <li class="history-empty">
+                <span class="material-symbols-rounded">checklist</span>
+                <span>No pending tasks for today</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- C. Today's Completed Tasks -->
+    <div class="activity-panel glass-panel">
+        <div class="activity-panel-header">
+            <div class="activity-panel-title">
+                <span class="activity-dot dot-green"></span>
+                <h3>Today's Completed Tasks</h3>
+            </div>
+            <span class="activity-count-badge badge-green" id="today-done-count">0</span>
+        </div>
+        <ul id="today-completed-list" class="history-task-list">
+            <li class="history-empty">
+                <span class="material-symbols-rounded">task_alt</span>
+                <span>No tasks completed today yet</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Row 2: YESTERDAY (Completed on left, Not Completed on right) -->
+<div class="dashboard-sections-header" style="margin: 0 0 14px 0; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-rounded" style="color: #a29bfe; font-size: 22px;">history</span>
+        <h2 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin: 0;">Yesterday's Task Record (Locked)</h2>
+    </div>
+    <span class="pill-locked" style="font-size: 0.72rem; padding: 3px 8px;"><span class="material-symbols-rounded" style="font-size: 13px;">lock</span> Historical Read-Only</span>
+</div>
+
+<div class="dashboard-activity-grid">
+    <!-- A. Yesterday's Completed Tasks -->
+    <div class="activity-panel glass-panel">
+        <div class="activity-panel-header">
+            <div class="activity-panel-title">
+                <span class="activity-dot dot-green"></span>
+                <h3>Yesterday's Completed Tasks</h3>
+            </div>
+            <span class="activity-count-badge badge-green" id="yesterday-done-count">0</span>
+        </div>
+        <ul id="yesterday-completed-list" class="history-task-list">
+            <li class="history-empty">
+                <span class="material-symbols-rounded">history</span>
+                <span>No tasks completed yesterday</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- B. Yesterday's Not Completed Tasks -->
+    <div class="activity-panel glass-panel">
+        <div class="activity-panel-header">
+            <div class="activity-panel-title">
+                <span class="activity-dot dot-red"></span>
+                <h3 style="color: #ff7675;">Yesterday's Not Completed</h3>
+            </div>
+            <span class="activity-count-badge badge-red" id="yesterday-missed-count">0</span>
+        </div>
+        <ul id="yesterday-missed-list" class="history-task-list">
+            <li class="history-empty">
+                <span class="material-symbols-rounded">event_busy</span>
+                <span>No missed tasks from yesterday</span>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Greeting based on time
+    const hour = new Date().getHours();
+    const greetingEl = document.getElementById('dashboard-greeting');
+    if (greetingEl) {
+        if (hour < 12) greetingEl.innerText = 'Good Morning 🌤️';
+        else if (hour < 17) greetingEl.innerText = 'Good Afternoon ☀️';
+        else greetingEl.innerText = 'Good Evening 🌙';
+    }
+    // Short date pill
+    const todayShort = document.getElementById('today-short-date');
+    if (todayShort) {
+        const opts = { weekday: 'short', month: 'short', day: 'numeric' };
+        todayShort.innerText = new Date().toLocaleDateString('en-US', opts);
+    }
+</script>
+{% endblock %}

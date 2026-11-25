@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do | {% block title %}Focus{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ range(1000, 9999) | random }}">
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <div id="app-container" class="app-wrapper">
+        <!-- Sidebar Navigation (Desktop sidebar on left; Sleek fixed bottom navigation on mobile) -->
+        <nav class="sidebar glass-panel">
+            <div class="scu-logo">
+                <h2>Interview Prep<span class="dot">.</span></h2>
+            </div>
+
+            <ul class="nav-links">
+                <a href="/dashboard" class="nav-link-item">
+                    <li class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                        <span class="material-symbols-rounded">dashboard</span>
+                        <span class="link-text">Dashboard</span>
+                    </li>
+                </a>
+                <a href="/tasks" class="nav-link-item">
+                    <li class="nav-item {% if active_page == 'tasks' %}active{% endif %}">
+                        <span class="material-symbols-rounded">check_circle</span>
+                        <span class="link-text">Tasks</span>
+                    </li>
+                </a>
+                <a href="/plan" class="nav-link-item">
+                    <li class="nav-item {% if active_page == 'plan' %}active{% endif %}">
+                        <span class="material-symbols-rounded">calendar_month</span>
+                        <span class="link-text">Plan</span>
+                    </li>
+                </a>
+                <a href="/interview-prep" class="nav-link-item">
+                    <li class="nav-item {% if active_page == 'interview_prep' %}active{% endif %}">
+                        <span class="material-symbols-rounded">video_camera_front</span>
+                        <span class="link-text">Interview Prep</span>
+                    </li>
+                </a>
+                <a href="/practice" class="nav-link-item">
+                    <li class="nav-item {% if active_page == 'practice' %}active{% endif %}">
+                        <span class="material-symbols-rounded">work</span>
+                        <span class="link-text">Job Practice</span>
+                    </li>
+                </a>
+            </ul>
+
+            <div class="user-profile">
+                <div class="avatar" id="user-avatar">U</div>
+                <div class="user-info">
+                    <span id="user-name">User</span>
+                    <button id="logout-btn" class="btn-text">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Universal Task Modal (Accessible from Dashboard, Tasks & Plan pages) -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content glass-panel" style="max-width:560px;">
+            <span class="close-modal">&times;</span>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;">
+                <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),#a29bfe);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <span class="material-symbols-rounded" style="color:white;font-size:20px;" id="modal-title-icon">add_task</span>
+                </div>
+                <h2 id="task-modal-title" style="margin:0;">Create New Task</h2>
+            </div>
+            <form id="create-task-form">
+                <!-- Hidden fields for edit mode -->
+                <input type="hidden" id="edit-task-id" value="">
+                <input type="hidden" id="edit-occurrence-id" value="">
+
+                <!-- Row 1: Title -->
+                <div class="input-group">
+                    <label>Task Title <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="new-task-title" placeholder="e.g. Practice DSA for 1 hour" required>
+                </div>
+
+                <!-- Row 2: Description -->
+                <div class="input-group">
+                    <label>Description <span style="color:var(--text-muted);font-size:0.8rem;">(optional)</span></label>
+                    <textarea id="new-task-description" placeholder="Add notes or details..." rows="2" style="resize:vertical;padding:10px 12px;"></textarea>
+                </div>
+
+                <!-- Row 3: Date + Time -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Due Date</label>
+                        <input type="date" id="new-task-date">
+                        <div class="quick-dates" style="margin-top:4px;">
+                            <span class="date-chip" onclick="setDate('today')">Today</span>
+                            <span class="date-chip" onclick="setDate('tomorrow')">Tomorrow</span>
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Time <span style="color:var(--text-muted);font-size:0.8rem;">(optional)</span></label>
+                        <input type="time" id="new-task-time" style="padding:12px;">
+                    </div>
+                </div>
+
+                <!-- Row 4: Priority + Category -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Priority</label>
+                        <select id="new-task-priority">
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Category</label>
+                        <select id="new-task-category">
+                            <option value="general" selected>General</option>
+                            <option value="study">Study</option>
+                            <option value="health">Health</option>
+                            <option value="work">Work</option>
+                            <option value="personal">Personal</option>
+                            <option value="fitness">Fitness</option>
+                            <option value="interview">Interview Prep</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Row 5: Repeat + Duration -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Repeat</label>
+                        <select id="new-task-repeat">
+                            <option value="none" selected>Don't repeat</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Duration <span style="color:var(--text-muted);font-size:0.8rem;">(mins)</span></label>
+                        <input type="number" id="new-task-duration" placeholder="e.g. 30" min="1" max="1440" style="padding:12px;">
+                    </div>
+                </div>
+
+                <!-- Priority visual selector -->
+                <div style="margin-top:12px;">
+                    <label style="font-size:0.85rem;color:var(--text-muted);display:block;margin-bottom:6px;">Quick Priority</label>
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" class="priority-quick-btn" data-priority="high" onclick="selectQuickPriority('high')" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,118,117,0.4);background:rgba(255,118,117,0.1);color:#ff7675;font-size:0.8rem;cursor:pointer;transition:all 0.2s;">
+                            🔴 High
+                        </button>
+                        <button type="button" class="priority-quick-btn" data-priority="medium" onclick="selectQuickPriority('medium')" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(253,203,110,0.5);background:rgba(253,203,110,0.15);color:#fdcb6e;font-size:0.8rem;cursor:pointer;transition:all 0.2s;box-shadow:0 0 8px rgba(253,203,110,0.2);">
+                            🟡 Medium
+                        </button>
+                        <button type="button" class="priority-quick-btn" data-priority="low" onclick="selectQuickPriority('low')" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(108,92,231,0.4);background:rgba(108,92,231,0.1);color:#a29bfe;font-size:0.8rem;cursor:pointer;transition:all 0.2s;">
+                            🔵 Low
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top:1.5rem;">
+                    <button type="button" class="btn-text close-modal-btn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="task-submit-btn" style="width:auto;padding:10px 24px;">
+                        <span class="material-symbols-rounded" style="font-size:18px;">add_task</span>
+                        <span id="task-submit-label">Create Task</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Detail / View Modal -->
+    <div id="task-detail-modal" class="modal hidden">
+        <div class="modal-content glass-panel" style="max-width:500px;">
+            <span class="close-modal" onclick="document.getElementById('task-detail-modal').classList.add('hidden')">&times;</span>
+            <div id="task-detail-content"></div>
+        </div>
+    </div>
+
+    <script>
+        function setDate(type) {
+            const dateInput = document.getElementById('new-task-date');
+            if (!dateInput) return;
+            const today = new Date();
+            if (type === 'tomorrow') today.setDate(today.getDate() + 1);
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        function selectQuickPriority(p) {
+            const sel = document.getElementById('new-task-priority');
+            if (sel) sel.value = p;
+            document.querySelectorAll('.priority-quick-btn').forEach(btn => {
+                const isActive = btn.dataset.priority === p;
+                btn.style.boxShadow = isActive ? '0 0 10px rgba(108,92,231,0.4)' : '';
+                btn.style.transform = isActive ? 'scale(1.05)' : '';
+            });
+        }
+
+        // Open task modal in CREATE mode
+        function openCreateTaskModal(prefillDate) {
+            const modal = document.getElementById('task-modal');
+            if (!modal) return;
+            document.getElementById('task-modal-title').textContent = 'Create New Task';
+            document.getElementById('modal-title-icon').textContent = 'add_task';
+            document.getElementById('task-submit-label').textContent = 'Create Task';
+            document.getElementById('edit-task-id').value = '';
+            document.getElementById('edit-occurrence-id').value = '';
+            document.getElementById('create-task-form').reset();
+            if (prefillDate) {
+                document.getElementById('new-task-date').value = prefillDate;
+            } else {
+                setDate('today');
+            }
+            selectQuickPriority('medium');
+            modal.classList.remove('hidden');
+        }
+
+        // Open task modal in EDIT mode
+        function openEditTaskModal(taskData) {
+            const modal = document.getElementById('task-modal');
+            if (!modal) return;
+            document.getElementById('task-modal-title').textContent = 'Edit Task';
+            document.getElementById('modal-title-icon').textContent = 'edit';
+            document.getElementById('task-submit-label').textContent = 'Save Changes';
+            document.getElementById('edit-task-id').value = taskData.taskId || taskData.id || '';
+            document.getElementById('edit-occurrence-id').value = taskData.occurrenceId || taskData.id || '';
+            document.getElementById('new-task-title').value = taskData.title || '';
+            document.getElementById('new-task-description').value = taskData.description || '';
+            document.getElementById('new-task-date').value = taskData.scheduledDate || taskData.dueDate || '';
+            document.getElementById('new-task-time').value = taskData.taskTime || '';
+            document.getElementById('new-task-priority').value = taskData.priority || 'medium';
+            document.getElementById('new-task-category').value = taskData.category || 'general';
+            document.getElementById('new-task-repeat').value = taskData.repeat || 'none';
+            document.getElementById('new-task-duration').value = taskData.duration || '';
+            selectQuickPriority(taskData.priority || 'medium');
+            modal.classList.remove('hidden');
+        }
+    </script>
+
+    <!-- Modals -->
+    {% block modals %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='script.js') }}?v={{ range(10000, 99999) | random }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

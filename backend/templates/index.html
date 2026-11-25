@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do | Organize Your Life</title>
+    <meta name="description"
+        content="A premium, comprehensive to-do list application for managing tasks, planning your day, and tracking progress.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+
+    <div id="auth-container" class="auth-wrapper">
+        <div class="auth-card glass-panel">
+            <h1 class="logo">Antigravity<span class="dot">.</span></h1>
+            <p class="auth-subtitle">Sign in to manage your tasks</p>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <span class="material-symbols-rounded icon">mail</span>
+                    <input type="email" id="login-email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <span class="material-symbols-rounded icon">lock</span>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">Sign In</button>
+            </form>
+
+            <p class="switch-auth">Don't have an account? <a href="#" id="show-register">Create one</a></p>
+        </div>
+
+        <div class="auth-card glass-panel hidden" id="register-card">
+            <h1 class="logo">Antigravity<span class="dot">.</span></h1>
+            <p class="auth-subtitle">Create your account</p>
+
+            <form id="register-form">
+                <div class="input-group">
+                    <span class="material-symbols-rounded icon">person</span>
+                    <input type="text" id="reg-name" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <span class="material-symbols-rounded icon">mail</span>
+                    <input type="email" id="reg-email" placeholder="Email Address" required>
+                </div>
+                <div class="input-group">
+                    <span class="material-symbols-rounded icon">lock</span>
+                    <input type="password" id="reg-password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">Sign Up</button>
+            </form>
+
+            <p class="switch-auth">Already have an account? <a href="#" id="show-login">Sign In</a></p>
+        </div>
+    </div>
+
+    <div id="app-container" class="app-wrapper hidden">
+        <nav class="sidebar glass-panel">
+            <div class="scu-logo">
+                <h2>To Do List<span class="dot">.</span></h2>
+            </div>
+
+            <ul class="nav-links">
+                <li class="nav-item active" data-target="dashboard">
+                    <span class="material-symbols-rounded">dashboard</span>
+                    <span class="link-text">Dashboard</span>
+                </li>
+                <li class="nav-item" data-target="tasks">
+                    <span class="material-symbols-rounded">check_circle</span>
+                    <span class="link-text">Tasks</span>
+                </li>
+                <li class="nav-item" data-target="plan">
+                    <span class="material-symbols-rounded">calendar_month</span>
+                    <span class="link-text">Plan</span>
+                </li>
+                <li class="nav-item" data-target="completed">
+                    <span class="material-symbols-rounded">task</span>
+                    <span class="link-text">Completed</span>
+                </li>
+            </ul>
+
+            <div class="user-profile">
+                <div class="avatar" id="user-avatar">U</div>
+                <div class="user-info">
+                    <span id="user-name">User</span>
+                    <button id="logout-btn" class="btn-text">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="dashboard" class="view active">
+                <header class="view-header">
+                    <h1>Dashboard</h1>
+                    <p class="date-display" id="current-date">Fetching date...</p>
+                </header>
+
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon purple">
+                            <span class="material-symbols-rounded">list</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total</h3>
+                            <p id="total-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon blue">
+                            <span class="material-symbols-rounded">timer</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pending</h3>
+                            <p id="pending-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon green">
+                            <span class="material-symbols-rounded">check</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Done</h3>
+                            <p id="done-count">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-tasks glass-panel mt-4">
+                    <h3>Task History</h3>
+                    <ul id="recent-list" class="task-list-clean">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Tasks View -->
+            <section id="tasks" class="view">
+                <header class="view-header">
+                    <h1>My Tasks</h1>
+                    <button class="btn-primary" id="add-task-btn">
+                        <span class="material-symbols-rounded">add</span> New Task
+                    </button>
+                </header>
+
+                <div class="task-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="high">High Priority</button>
+                    <button class="filter-btn" data-filter="medium">Medium</button>
+                </div>
+
+                <div class="tasks-container" id="tasks-list">
+                    <!-- Tasks injected here -->
+                    <div class="empty-state">
+                        <p>Loading tasks...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Plan View -->
+            <section id="plan" class="view">
+                <header class="view-header">
+                    <h1>Plan Your Day</h1>
+                    <p>Focus on what matters most.</p>
+                </header>
+
+                <div class="plan-wrapper">
+                    <div class="glass-panel plan-input">
+                        <h3>Add to Plan</h3>
+                        <form id="plan-form">
+                            <input type="text" id="plan-input-text" placeholder="What's the main goal?" required>
+                            <div class="plan-options">
+                                <select id="plan-priority">
+                                    <option value="low">Low Priority</option>
+                                    <option value="medium" selected>Medium Priority</option>
+                                    <option value="high">High Priority</option>
+                                </select>
+                                <input type="date" id="plan-date">
+                            </div>
+                            <button type="submit" class="btn-secondary">Add to Schedule</button>
+                        </form>
+                    </div>
+
+                    <div class="upcoming-plans glass-panel">
+                        <h3>Upcoming</h3>
+                        <div id="plans-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Completed View -->
+            <section id="completed" class="view">
+                <header class="view-header">
+                    <h1>Completed Tasks</h1>
+                    <p>Look at what you've achieved!</p>
+                </header>
+                <div class="completed-list" id="completed-list">
+                    <!-- Completed items -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for New Task -->
+    <div id="task-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <span class="close-modal">&times;</span>
+            <h2>Create New Task</h2>
+            <form id="create-task-form">
+                <div class="input-group">
+                    <label>Task Title</label>
+                    <input type="text" id="new-task-title" placeholder="e.g. Finish project report" required>
+                </div>
+                <div class="input-group">
+                    <label>Description (Optional)</label>
+                    <textarea id="new-task-desc" rows="3" placeholder="Add details..."></textarea>
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Priority</label>
+                        <select id="new-task-priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Due Date</label>
+                        <input type="date" id="new-task-date">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-text close-modal-btn">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

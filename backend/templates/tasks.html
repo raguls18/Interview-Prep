@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block content %}
+<header class="view-header">
+    <div>
+        <h1>My Tasks</h1>
+        <p class="subtitle" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 2px;">Daily task tracking, recurring schedules & history</p>
+    </div>
+    <button class="btn-primary" id="add-task-btn">
+        <span class="material-symbols-rounded">add</span> New Task
+    </button>
+</header>
+
+<!-- Tasks Filter Tabs -->
+<div class="tasks-tab-bar glass-panel">
+    <button class="task-tab active" data-tab="all" onclick="switchTaskTab('all')">
+        <span class="material-symbols-rounded">view_list</span> All
+    </button>
+    <button class="task-tab" data-tab="today" onclick="switchTaskTab('today')">
+        <span class="material-symbols-rounded">today</span> Today's Tasks <span class="tab-badge" id="tab-today-badge">0</span>
+    </button>
+    <button class="task-tab" data-tab="not-complete" onclick="switchTaskTab('not-complete')">
+        <span class="material-symbols-rounded">warning</span> Not Completed <span class="tab-badge badge-red" id="tab-missed-badge">0</span>
+    </button>
+    <button class="task-tab" data-tab="upcoming" onclick="switchTaskTab('upcoming')">
+        <span class="material-symbols-rounded">event_upcoming</span> Upcoming <span class="tab-badge badge-blue" id="tab-upcoming-badge">0</span>
+    </button>
+    <button class="task-tab" data-tab="completed" onclick="switchTaskTab('completed')">
+        <span class="material-symbols-rounded">task_alt</span> Completed <span class="tab-badge badge-green" id="tab-done-badge">0</span>
+    </button>
+    <button class="task-tab" data-tab="recurring" onclick="switchTaskTab('recurring')">
+        <span class="material-symbols-rounded">repeat</span> Recurring <span class="tab-badge badge-purple" id="tab-recurring-badge">0</span>
+    </button>
+    <button class="task-tab" data-tab="history" onclick="switchTaskTab('history')">
+        <span class="material-symbols-rounded">history</span> History
+    </button>
+</div>
+
+<!-- Quick Filter & Search Bar -->
+<div class="glass-panel" style="padding:10px 14px;margin-bottom:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:180px;position:relative;">
+        <span class="material-symbols-rounded" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--text-muted);">search</span>
+        <input type="text" id="filter-task-search" placeholder="Search tasks..." oninput="setTaskSearchQuery(this.value)" style="width:100%;padding:8px 10px 8px 34px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;color:white;font-size:0.85rem;">
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select id="filter-task-priority" onchange="setTaskFilterPriority(this.value)" style="padding:7px 10px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;color:white;font-size:0.82rem;">
+            <option value="all">All Priorities</option>
+            <option value="high">🔴 High Priority</option>
+            <option value="medium">🟡 Medium Priority</option>
+            <option value="low">🔵 Low Priority</option>
+        </select>
+        <select id="filter-task-category" onchange="setTaskFilterCategory(this.value)" style="padding:7px 10px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:10px;color:white;font-size:0.82rem;">
+            <option value="all">All Categories</option>
+            <option value="general">📋 General</option>
+            <option value="study">📚 Study</option>
+            <option value="health">💊 Health</option>
+            <option value="work">💼 Work</option>
+            <option value="interview">🎤 Interview Prep</option>
+            <option value="fitness">🏋️ Fitness</option>
+            <option value="personal">🏠 Personal</option>
+        </select>
+        <button type="button" class="btn-text" onclick="resetTaskFilters()" style="font-size:0.8rem;padding:6px 10px;text-decoration:none;color:var(--text-muted);border:1px solid var(--border);border-radius:8px;">
+            Reset
+        </button>
+    </div>
+</div>
+
+<div class="tasks-container" id="tasks-list">
+    <!-- Tasks injected here dynamically by script.js -->
+    <div class="empty-state">
+        <p>Loading tasks...</p>
+    </div>
+</div>
+{% endblock %}

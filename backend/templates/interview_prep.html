@@ -1,0 +1,755 @@
+{% extends "layout.html" %}
+
+{% block title %}Interview Preparation{% endblock %}
+
+{% block content %}
+<header class="view-header interview-header">
+    <div class="header-content">
+        <h1><span class="gradient-text">Interview Preparation</span></h1>
+        <p class="subtitle">Practice and improve your interview skills with AI feedback</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-audio-test-header" onclick="openAudioTestModal()" title="Test Microphone and Sound Quality">
+            <span class="material-symbols-rounded">mic</span>
+            <span>Audio Test</span>
+        </button>
+        <button class="btn-api-settings" id="open-api-modal-btn" onclick="openApiSettingsModal()" title="Configure AI API Keys">
+            <span class="material-symbols-rounded">key</span>
+            <span>AI API Keys</span>
+        </button>
+    </div>
+</header>
+
+<!-- Interview Prep Navigation Tabs -->
+<div class="prep-nav-tabs">
+    <button class="prep-tab active" data-tab="overview">
+        <span class="material-symbols-rounded">analytics</span>
+        <span>Overview</span>
+    </button>
+    <button class="prep-tab" data-tab="self-intro">
+        <span class="material-symbols-rounded">person</span>
+        <span>Self Introduction</span>
+    </button>
+    <button class="prep-tab" data-tab="communication">
+        <span class="material-symbols-rounded">forum</span>
+        <span>Communication</span>
+    </button>
+    <button class="prep-tab" data-tab="history">
+        <span class="material-symbols-rounded">history</span>
+        <span>Practice History</span>
+    </button>
+</div>
+
+<!-- Overview Section -->
+<section class="prep-section" id="overview-section">
+    <!-- Activity Analysis Card -->
+    <div class="analysis-container">
+        <div class="analysis-card glass-panel">
+            <div class="analysis-header">
+                <div class="analysis-title">
+                    <span class="material-symbols-rounded">psychology</span>
+                    <h3>AI Activity Analysis</h3>
+                </div>
+                <button class="btn-analyze" id="analyze-activity-btn" onclick="analyzeStudentActivity()">
+                    <span class="material-symbols-rounded">auto_awesome</span>
+                    Analyze My Activity
+                </button>
+            </div>
+            <div class="analysis-content" id="activity-analysis">
+                <div class="analysis-placeholder">
+                    <span class="material-symbols-rounded">insights</span>
+                    <p>Click "Analyze My Activity" to get AI-powered insights on your interview preparation progress</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Stats -->
+    <div class="prep-stats-grid">
+        <div class="prep-stat-card glass-panel">
+            <div class="stat-icon-wrap gradient-purple">
+                <span class="material-symbols-rounded">videocam</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-number" id="total-recordings">0</span>
+                <span class="stat-label">Practice Sessions</span>
+            </div>
+        </div>
+        <div class="prep-stat-card glass-panel">
+            <div class="stat-icon-wrap gradient-blue">
+                <span class="material-symbols-rounded">timer</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-number" id="total-practice-time">0h</span>
+                <span class="stat-label">Total Practice Time</span>
+            </div>
+        </div>
+        <div class="prep-stat-card glass-panel">
+            <div class="stat-icon-wrap gradient-green">
+                <span class="material-symbols-rounded">trending_up</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-number" id="avg-score">--</span>
+                <span class="stat-label">Average Score</span>
+            </div>
+        </div>
+        <div class="prep-stat-card glass-panel">
+            <div class="stat-icon-wrap gradient-orange">
+                <span class="material-symbols-rounded">local_fire_department</span>
+            </div>
+            <div class="stat-details">
+                <span class="stat-number" id="practice-streak">0</span>
+                <span class="stat-label">Day Streak</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-grid">
+        <div class="action-card glass-panel" onclick="switchTab('self-intro')">
+            <div class="action-icon">
+                <span class="material-symbols-rounded">record_voice_over</span>
+            </div>
+            <h4>Practice Self Introduction</h4>
+            <p>Record and analyze your self-introduction</p>
+            <button class="btn-action">
+                <span class="material-symbols-rounded">play_arrow</span> Start
+            </button>
+        </div>
+        <div class="action-card glass-panel" onclick="switchTab('communication')">
+            <div class="action-icon">
+                <span class="material-symbols-rounded">chat</span>
+            </div>
+            <h4>Communication Skills</h4>
+            <p>Practice answering interview questions</p>
+            <button class="btn-action">
+                <span class="material-symbols-rounded">play_arrow</span> Start
+            </button>
+        </div>
+        <div class="action-card glass-panel" onclick="getInterviewTips()">
+            <div class="action-icon">
+                <span class="material-symbols-rounded">lightbulb</span>
+            </div>
+            <h4>Interview Tips</h4>
+            <p>Get AI-generated tips based on your progress</p>
+            <button class="btn-action" id="get-tips-btn" onclick="event.stopPropagation(); getInterviewTips();">
+                <span class="material-symbols-rounded">auto_awesome</span> Get Tips
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Self Introduction Practice Section -->
+<section class="prep-section hidden" id="self-intro-section">
+    <div class="practice-container">
+        <div class="video-record-area glass-panel">
+            <div class="video-header">
+                <h3><span class="material-symbols-rounded">person</span> Self Introduction Practice</h3>
+                <div class="timer-display">
+                    <span class="material-symbols-rounded">timer</span>
+                    <span id="self-intro-timer">00:00</span>
+                    <span class="timer-limit">/ 02:00</span>
+                </div>
+            </div>
+
+            <div class="video-preview-container">
+                <video id="self-intro-video" autoplay muted playsinline></video>
+                <div class="video-overlay" id="self-intro-overlay">
+                    <span class="material-symbols-rounded">videocam</span>
+                    <p>Click Start to begin recording</p>
+                </div>
+                <div class="recording-indicator hidden" id="self-intro-recording">
+                    <span class="rec-dot"></span> REC
+                </div>
+            </div>
+
+            <div class="prompt-area glass-panel">
+                <h4><span class="material-symbols-rounded">tips_and_updates</span> Prompt</h4>
+                <p id="self-intro-prompt">Introduce yourself in 2 minutes. Include your name, background, key skills,
+                    and what makes you unique.</p>
+                <button class="btn-refresh-prompt" id="refresh-intro-prompt" onclick="refreshSelfIntroPrompt()">
+                    <span class="material-symbols-rounded">refresh</span> New Prompt
+                </button>
+            </div>
+
+            <!-- AI Model Selector -->
+            <div class="model-selector" id="self-intro-model-selector">
+                <label><span class="material-symbols-rounded" style="font-size:1rem">psychology</span> Analyse with:</label>
+                <div class="model-toggle">
+                    <button class="model-btn active" data-model="gemini" data-section="self-intro">
+                        <span class="material-symbols-rounded" style="font-size:0.9rem">auto_awesome</span>
+                        Gemini <span class="model-badge">2.5 Flash</span>
+                    </button>
+                    <button class="model-btn" data-model="chatgpt" data-section="self-intro">
+                        <span class="material-symbols-rounded" style="font-size:0.9rem">smart_toy</span>
+                        ChatGPT <span class="model-badge chatgpt">GPT-4o</span>
+                    </button>
+                    <button class="model-btn" data-model="ollama" data-section="self-intro">
+                        <span class="material-symbols-rounded" style="font-size:0.9rem">dns</span>
+                        Ollama <span class="model-badge ollama">Local</span>
+                    </button>
+                    <button class="btn-api-quick-settings" onclick="openApiSettingsModal()" title="Paste or change ChatGPT / Gemini API Keys">
+                        <span class="material-symbols-rounded" style="font-size:0.95rem">key</span>
+                        <span>Paste API Keys</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-controls">
+                <button class="btn-record" id="start-self-intro">
+                    <span class="material-symbols-rounded">videocam</span> Start Recording
+                </button>
+                <button type="button" class="btn-audio-test" onclick="openAudioTestModal()" title="Test microphone and sound quality">
+                    <span class="material-symbols-rounded">mic</span> Test Audio
+                </button>
+                <label class="btn-record upload-video-btn"
+                    style="background: rgba(108, 92, 231, 0.1); border: 1px dashed rgba(108, 92, 231, 0.4); margin-left: 10px; cursor: pointer; color: var(--primary);">
+                    <span class="material-symbols-rounded">upload</span> Upload Video
+                    <input type="file" id="upload-self-intro" accept="video/*" style="display:none;">
+                </label>
+                <button class="btn-stop hidden" id="stop-self-intro">
+                    <span class="material-symbols-rounded">stop</span> Stop Recording
+                </button>
+                <button class="btn-analyze-video hidden" id="analyze-self-intro">
+                    <span class="material-symbols-rounded">auto_awesome</span> Analyze Recording
+                </button>
+                <button class="btn-download hidden" id="download-self-intro">
+                    <span class="material-symbols-rounded">download</span> Download Video
+                </button>
+            </div>
+        </div>
+
+        <div class="feedback-panel glass-panel">
+            <h3><span class="material-symbols-rounded">rate_review</span> AI Feedback</h3>
+            <div class="feedback-content" id="self-intro-feedback">
+                <div class="feedback-placeholder">
+                    <span class="material-symbols-rounded">psychology</span>
+                    <p>Complete a recording to receive AI-powered feedback on your self-introduction</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips for Self Introduction -->
+    <div class="tips-panel glass-panel">
+        <h4><span class="material-symbols-rounded">lightbulb</span> Quick Tips</h4>
+        <ul class="tips-list">
+            <li><span class="material-symbols-rounded">check_circle</span> Start with a confident greeting</li>
+            <li><span class="material-symbols-rounded">check_circle</span> Maintain eye contact with the camera</li>
+            <li><span class="material-symbols-rounded">check_circle</span> Speak clearly and at moderate pace</li>
+            <li><span class="material-symbols-rounded">check_circle</span> Highlight your unique strengths</li>
+            <li><span class="material-symbols-rounded">check_circle</span> End with your career goals</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Communication Skills Practice Section -->
+<section class="prep-section hidden" id="communication-section">
+    <div class="practice-container">
+        <div class="video-record-area glass-panel">
+            <div class="video-header">
+                <h3><span class="material-symbols-rounded">forum</span> Communication Practice</h3>
+                <div class="timer-display">
+                    <span class="material-symbols-rounded">timer</span>
+                    <span id="comm-timer">00:00</span>
+                    <span class="timer-limit">/ 03:00</span>
+                </div>
+            </div>
+
+            <div class="video-preview-container">
+                <video id="comm-video" autoplay muted playsinline></video>
+                <div class="video-overlay" id="comm-overlay">
+                    <span class="material-symbols-rounded">videocam</span>
+                    <p>Click Start to begin recording</p>
+                </div>
+                <div class="recording-indicator hidden" id="comm-recording">
+                    <span class="rec-dot"></span> REC
+                </div>
+            </div>
+
+            <div class="prompt-area glass-panel question-prompt">
+                <div class="question-header">
+                    <h4><span class="material-symbols-rounded">help_outline</span> Interview Question</h4>
+                    <span class="difficulty-badge medium" id="question-difficulty">Medium</span>
+                </div>
+                <p id="comm-prompt">Tell me about a challenging situation you faced at work and how you handled it.</p>
+                <div class="question-category">
+                    <span class="material-symbols-rounded">category</span>
+                    <span id="question-category">Behavioral</span>
+                </div>
+                <button class="btn-refresh-prompt" id="refresh-comm-prompt" onclick="refreshCommPrompt()">
+                    <span class="material-symbols-rounded">refresh</span> New Question
+                </button>
+            </div>
+
+            <!-- AI Model Selector -->
+            <div class="model-selector" id="comm-model-selector">
+                <label><span class="material-symbols-rounded" style="font-size:1rem">psychology</span> Analyse with:</label>
+                <div class="model-toggle">
+                    <button class="model-btn active" data-model="gemini" data-section="comm">
+                        <span class="material-symbols-rounded" style="font-size:0.9rem">auto_awesome</span>
+                        Gemini <span class="model-badge">2.5 Flash</span>
+                    </button>
+                    <button class="model-btn" data-model="chatgpt" data-section="comm">
+                        <span class="material-symbols-rounded" style="font-size:0.9rem">smart_toy</span>
+                        ChatGPT <span class="model-badge chatgpt">GPT-4o</span>
+                    </button>
+                    <button class="model-btn" data-model="ollama" data-section="comm">
+                        <span class="material-symbols-rounded" style="font-size:0.9rem">dns</span>
+                        Ollama <span class="model-badge ollama">Local</span>
+                    </button>
+                    <button class="btn-api-quick-settings" onclick="openApiSettingsModal()" title="Paste or change ChatGPT / Gemini API Keys">
+                        <span class="material-symbols-rounded" style="font-size:0.95rem">key</span>
+                        <span>Paste API Keys</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-controls">
+                <button class="btn-record" id="start-comm">
+                    <span class="material-symbols-rounded">videocam</span> Start Recording
+                </button>
+                <button type="button" class="btn-audio-test" onclick="openAudioTestModal()" title="Test microphone and sound quality">
+                    <span class="material-symbols-rounded">mic</span> Test Audio
+                </button>
+                <label class="btn-record upload-video-btn"
+                    style="background: rgba(108, 92, 231, 0.1); border: 1px dashed rgba(108, 92, 231, 0.4); margin-left: 10px; cursor: pointer; color: var(--primary);">
+                    <span class="material-symbols-rounded">upload</span> Upload Video
+                    <input type="file" id="upload-comm" accept="video/*" style="display:none;">
+                </label>
+                <button class="btn-stop hidden" id="stop-comm">
+                    <span class="material-symbols-rounded">stop</span> Stop Recording
+                </button>
+                <button class="btn-analyze-video hidden" id="analyze-comm">
+                    <span class="material-symbols-rounded">auto_awesome</span> Analyze Recording
+                </button>
+                <button class="btn-download hidden" id="download-comm">
+                    <span class="material-symbols-rounded">download</span> Download Video
+                </button>
+            </div>
+        </div>
+
+        <div class="feedback-panel glass-panel">
+            <h3><span class="material-symbols-rounded">rate_review</span> AI Feedback</h3>
+            <div class="feedback-content" id="comm-feedback">
+                <div class="feedback-placeholder">
+                    <span class="material-symbols-rounded">psychology</span>
+                    <p>Complete a recording to receive AI-powered feedback on your communication skills</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Categories -->
+    <div class="categories-panel glass-panel">
+        <h4><span class="material-symbols-rounded">category</span> Question Categories</h4>
+        <div class="category-chips">
+            <button class="category-chip active" data-category="behavioral">Behavioral</button>
+            <button class="category-chip" data-category="technical">Technical</button>
+            <button class="category-chip" data-category="situational">Situational</button>
+            <button class="category-chip" data-category="competency">Competency</button>
+            <button class="category-chip" data-category="motivation">Motivation</button>
+        </div>
+    </div>
+</section>
+
+<!-- Practice History Section -->
+<section class="prep-section hidden" id="history-section">
+    <div class="history-header glass-panel">
+        <h3><span class="material-symbols-rounded">history</span> Your Practice History</h3>
+        <div class="history-filters">
+            <button id="clear-all-history-btn" class="btn-clear-history"
+                style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.5rem 1rem; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s ease; font-weight: 500;">
+                <span class="material-symbols-rounded" style="font-size: 1.1rem;">delete_sweep</span>
+                Clear All
+            </button>
+            <select id="history-filter-type">
+                <option value="all">All Types</option>
+                <option value="self-intro">Self Introduction</option>
+                <option value="communication">Communication</option>
+            </select>
+            <select id="history-filter-time">
+                <option value="all" selected>All Time</option>
+                <option value="month">This Month</option>
+                <option value="week">This Week</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="history-list" id="practice-history-list">
+        <div class="empty-history">
+            <span class="material-symbols-rounded">videocam_off</span>
+            <p>No practice sessions recorded yet</p>
+            <span class="sub-text">Start practicing to build your history</span>
+        </div>
+    </div>
+
+    <!-- Progress Chart -->
+    <div class="progress-chart glass-panel">
+        <h4><span class="material-symbols-rounded">show_chart</span> Progress Over Time</h4>
+        <div class="chart-container" id="progress-chart">
+            <div class="chart-placeholder">
+                <span class="material-symbols-rounded">bar_chart</span>
+                <p>Complete more sessions to see your progress chart</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Analysis Results Modal -->
+<div id="analysis-modal" class="modal hidden">
+    <div class="modal-content glass-panel modal-lg">
+        <span class="close-modal" id="close-analysis-modal"
+            onclick="document.getElementById('analysis-modal').classList.add('hidden')">&times;</span>
+        <h2><span class="material-symbols-rounded modal-icon">psychology</span> AI Analysis Results</h2>
+        <div class="analysis-results" id="analysis-results-content">
+            <!-- Results will be populated here -->
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="close-analysis-btn">Close</button>
+            <button type="button" class="btn-primary" id="save-analysis-btn">
+                <span class="material-symbols-rounded">save</span> Save to History
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loading-modal" class="modal hidden">
+    <div class="modal-content glass-panel loading-modal">
+        <div class="loading-spinner">
+            <span class="material-symbols-rounded rotating">sync</span>
+        </div>
+        <p id="loading-text">Analyzing your performance...</p>
+    </div>
+</div>
+
+<!-- AI API Keys Configuration Modal -->
+<div id="api-keys-modal" class="modal hidden">
+    <div class="modal-content glass-panel api-keys-modal-content">
+        <div class="modal-header-sticky">
+            <div class="modal-title-group">
+                <h2><span class="material-symbols-rounded modal-icon">key</span> AI API Keys Setup</h2>
+                <p class="api-modal-subtitle">Paste your Google Gemini and OpenAI / ChatGPT API keys directly here to run AI interview analyses.</p>
+            </div>
+            <button type="button" class="btn-close-modal" id="close-api-modal" onclick="closeApiSettingsModal()" title="Close modal">&times;</button>
+        </div>
+
+        <div class="api-inputs-container modal-scroll-body">
+            <!-- Google Gemini API Key Input -->
+            <div class="api-key-card glass-panel">
+                <div class="api-key-header">
+                    <div class="api-key-title">
+                        <span class="material-symbols-rounded gemini-icon">auto_awesome</span>
+                        <strong>Google Gemini API Key</strong>
+                    </div>
+                    <span class="api-status-badge" id="gemini-status-badge">Checking...</span>
+                </div>
+                <div class="api-input-wrap">
+                    <input type="password" id="input-gemini-key" placeholder="Paste Gemini API Key (AIzaSy...)" autocomplete="off">
+                    <button type="button" class="btn-toggle-eye" onclick="toggleKeyVisibility('input-gemini-key', this)" title="Show/Hide Key">
+                        <span class="material-symbols-rounded">visibility</span>
+                    </button>
+                </div>
+                <div class="api-key-footer">
+                    <span class="api-hint">Used for Gemini 2.5 Flash visual & audio interview coaching.</span>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="api-link">
+                        Get free Gemini Key <span class="material-symbols-rounded" style="font-size:0.85rem">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- OpenAI ChatGPT API Key Input -->
+            <div class="api-key-card glass-panel">
+                <div class="api-key-header">
+                    <div class="api-key-title">
+                        <span class="material-symbols-rounded chatgpt-icon">smart_toy</span>
+                        <strong>OpenAI ChatGPT API Key</strong>
+                    </div>
+                    <span class="api-status-badge" id="chatgpt-status-badge">Checking...</span>
+                </div>
+                <div class="api-input-wrap">
+                    <input type="password" id="input-openai-key" placeholder="Paste OpenAI API Key (sk-...)" autocomplete="off">
+                    <button type="button" class="btn-toggle-eye" onclick="toggleKeyVisibility('input-openai-key', this)" title="Show/Hide Key">
+                        <span class="material-symbols-rounded">visibility</span>
+                    </button>
+                </div>
+                <div class="api-key-footer">
+                    <span class="api-hint">Used for ChatGPT GPT-4o multimodal interview coaching.</span>
+                    <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="api-link">
+                        Get OpenAI Key <span class="material-symbols-rounded" style="font-size:0.85rem">open_in_new</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions modal-actions-sticky">
+            <button type="button" class="btn-secondary" onclick="clearCustomApiKeys()" title="Reset to server environment keys">
+                <span class="material-symbols-rounded">restart_alt</span> Reset Default
+            </button>
+            <button type="button" class="btn-primary" onclick="saveCustomApiKeys()">
+                <span class="material-symbols-rounded">check</span> Save Keys
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Audio Test Modal -->
+<div id="audio-test-modal" class="modal hidden">
+    <div class="modal-content glass-panel audio-test-modal-content">
+        <div class="modal-header-sticky">
+            <div class="modal-title-group">
+                <h2><span class="material-symbols-rounded modal-icon">mic</span> Microphone & Audio Test</h2>
+                <p class="audio-modal-subtitle">Verify your microphone levels, test live speech-to-text, and record a playback sample before interviewing.</p>
+            </div>
+            <button type="button" class="btn-close-modal" id="close-audio-modal" onclick="closeAudioTestModal()" title="Close modal">&times;</button>
+        </div>
+
+        <div class="audio-test-grid modal-scroll-body">
+            <!-- Mic Device Selector -->
+            <div class="audio-card glass-panel">
+                <div class="audio-card-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="material-symbols-rounded" style="color: var(--primary);">settings_voice</span>
+                        <strong>Select Microphone</strong>
+                    </div>
+                    <button type="button" class="btn-refresh-mics" onclick="populateAudioDevices()" title="Refresh microphone list">
+                        <span class="material-symbols-rounded" style="font-size: 1rem;">refresh</span>
+                    </button>
+                </div>
+                <select id="audio-device-select" class="audio-select" onchange="switchTestAudioDevice(this.value)">
+                    <option value="">Default Microphone</option>
+                </select>
+            </div>
+
+            <!-- Live Volume & Visualizer -->
+            <div class="audio-card glass-panel">
+                <div class="audio-card-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="material-symbols-rounded" style="color: var(--secondary);">graphic_eq</span>
+                        <strong>Live Input Level</strong>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button type="button" class="btn-toggle-listen listening" id="btn-toggle-listen" onclick="toggleAudioListening()" title="Start or Stop microphone listening">
+                            <span class="material-symbols-rounded" id="listen-toggle-icon">mic_off</span>
+                            <span id="listen-toggle-text">Stop Listening</span>
+                        </button>
+                        <span id="audio-level-badge" class="level-badge idle">Ready</span>
+                    </div>
+                </div>
+
+                <!-- Visual Waveform Canvas & Progress Bar -->
+                <div class="vu-meter-wrap">
+                    <div class="vu-meter-bar" id="vu-meter-bar" style="width: 0%;"></div>
+                </div>
+                <canvas id="audio-visualizer-canvas" class="audio-canvas" width="480" height="50"></canvas>
+
+                <div class="audio-stats-row">
+                    <span id="audio-db-text">Volume: 0%</span>
+                    <span id="audio-status-feedback">Speak into your mic to test...</span>
+                </div>
+            </div>
+
+            <!-- Speech-to-Text & AI Voice Conversion Card -->
+            <div class="audio-card glass-panel" id="audio-stt-card">
+                <div class="audio-card-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="material-symbols-rounded" style="color: #00b894;">record_voice_over</span>
+                        <strong>Live Speech-to-Text & AI Audio Analysis</strong>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button type="button" class="btn-clear-transcript" onclick="clearAudioTestTranscript()" title="Clear transcribed text">
+                            <span class="material-symbols-rounded" style="font-size:0.95rem">backspace</span>
+                        </button>
+                        <span id="stt-status-badge" class="level-badge idle">Listening</span>
+                    </div>
+                </div>
+                <p class="audio-prompt-hint">Speak clearly: <em>"Hello, my microphone is working clearly for this interview."</em></p>
+                
+                <!-- Live transcribed text box -->
+                <div class="audio-transcript-box" id="audio-test-transcript">
+                    <span class="transcript-placeholder">Speak now into your microphone to convert your audio to text in real time...</span>
+                </div>
+
+                <!-- Convert / Analyze action buttons -->
+                <div class="speech-action-row">
+                    <button type="button" class="btn-ai-analyze-speech" id="btn-analyze-speech" onclick="analyzeSpeechWithAI()">
+                        <span class="material-symbols-rounded">auto_awesome</span> Analyze Speech with AI
+                    </button>
+                    <span class="speech-char-count" id="speech-word-count">0 words</span>
+                </div>
+
+                <!-- AI Analysis & Audio Conversion Container (hidden initially) -->
+                <div id="audio-ai-analysis-container" class="ai-speech-analysis-box hidden">
+                    <div class="analysis-box-header">
+                        <div class="ai-badge-row">
+                            <span class="material-symbols-rounded" style="color: var(--primary); font-size: 1.1rem;">psychology</span>
+                            <strong>AI Voice Coaching & Conversion</strong>
+                            <span id="speech-model-tag" class="model-badge">AI</span>
+                        </div>
+                    </div>
+
+                    <!-- Scores & metrics -->
+                    <div class="speech-metrics-grid">
+                        <div class="speech-metric-card">
+                            <span class="metric-label">Clarity</span>
+                            <span class="metric-val" id="metric-clarity">--</span>
+                        </div>
+                        <div class="speech-metric-card">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-val" id="metric-confidence">--</span>
+                        </div>
+                        <div class="speech-metric-card">
+                            <span class="metric-label">Tone</span>
+                            <span class="metric-val" id="metric-tone">--</span>
+                        </div>
+                        <div class="speech-metric-card">
+                            <span class="metric-label">Filler Words</span>
+                            <span class="metric-val" id="metric-fillers">None</span>
+                        </div>
+                    </div>
+
+                    <!-- Coaching tip -->
+                    <div class="speech-feedback-text" id="speech-feedback-text">
+                        Feedback will appear here...
+                    </div>
+
+                    <!-- AI Polished Interview Version -->
+                    <div class="polished-speech-card">
+                        <div class="polished-header">
+                            <span class="material-symbols-rounded" style="color: var(--secondary); font-size: 1rem;">verified</span>
+                            <span>Polished Interview Version</span>
+                        </div>
+                        <p id="polished-speech-text" class="polished-text">"..."</p>
+                    </div>
+
+                    <!-- Audio Conversion (Text-to-Speech) -->
+                    <div class="tts-conversion-row">
+                        <button type="button" class="btn-tts-speak" id="btn-tts-speak" onclick="toggleAISpeechPlayback()">
+                            <span class="material-symbols-rounded">volume_up</span>
+                            <span id="tts-btn-text">Listen to Audio Conversion</span>
+                        </button>
+                        <button type="button" class="btn-tts-stop hidden" id="btn-tts-stop" onclick="stopAISpeechPlayback()" title="Stop audio">
+                            <span class="material-symbols-rounded">stop</span>
+                        </button>
+                        <select id="tts-voice-select" class="tts-voice-dropdown" onchange="changeTTSVoice(this.value)">
+                            <option value="">Default AI Voice</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Second Playback Test -->
+            <div class="audio-card glass-panel">
+                <div class="audio-card-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="material-symbols-rounded" style="color: #fdcb6e;">headphones</span>
+                        <strong>Playback Audio Quality Check</strong>
+                    </div>
+                    <span id="playback-timer" class="playback-timer-text">00:00</span>
+                </div>
+                <p class="audio-prompt-hint">Record a 5-second sample to listen back and verify how your voice sounds to interviewers.</p>
+                <div class="playback-controls">
+                    <button type="button" class="btn-sample-record" id="btn-sample-record" onclick="toggleSampleRecording()">
+                        <span class="material-symbols-rounded">radio_button_checked</span> Start 5s Sample Test
+                    </button>
+                    <audio id="audio-sample-playback" controls class="sample-audio-player hidden"></audio>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions modal-actions-sticky">
+            <button type="button" class="btn-secondary" onclick="closeAudioTestModal()">Close</button>
+            <button type="button" class="btn-primary" onclick="closeAudioTestModal()">
+                <span class="material-symbols-rounded">check</span> Done, Ready to Practice
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .delete-btn:hover {
+        background-color: rgba(239, 68, 68, 0.2) !important;
+        color: #ef4444 !important;
+        border-color: rgba(239, 68, 68, 0.3) !important;
+    }
+</style>
+<style>
+    /* Model Selector Toggle */
+    .model-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        flex-wrap: wrap;
+    }
+    .model-selector label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    .model-toggle {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+    .model-btn {
+        padding: 0.35rem 0.9rem;
+        border-radius: 8px;
+        border: 1px solid rgba(108,92,231,0.35);
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    .model-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(108,92,231,0.08);
+    }
+    .model-btn.active {
+        background: rgba(108,92,231,0.2);
+        border-color: var(--primary);
+        color: #a29bfe;
+        box-shadow: 0 0 10px rgba(108,92,231,0.2);
+    }
+    .model-badge {
+        font-size: 0.65rem;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+        background: rgba(108,92,231,0.25);
+        color: #a29bfe;
+        font-weight: 600;
+    }
+    .model-badge.gpt { background: rgba(16,163,127,0.2); color: #10a37f; }
+    .model-badge.chatgpt { background: rgba(16,163,127,0.2); color: #10a37f; }
+    .model-badge.ollama { background: rgba(255,165,0,0.2); color: #ffa500; }
+</style>
+<script>
+    // Injecting API config from backend (.env) to frontend securely
+    window.GEMINI_API_KEY  = "{{ gemini_key }}";
+    window.OPENAI_API_KEY  = "{{ openai_key }}";
+    window.OLLAMA_BASE_URL = "{{ ollama_url }}";
+    window.OLLAMA_MODEL    = "{{ ollama_model }}";
+</script>
+<script src="{{ url_for('static', filename='interview_prep_v2.js') }}?v={{ range(1,9999) | random }}"></script>
+{% endblock %}
